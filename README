@@ -1,7 +1,8 @@
 ######################################################
 # SETUP PROJECCT                                     #
 ######################################################
-gradle install test shadowJar
+install gradle 3+
+gradle clean install test shadowJar
 
 
 ######################################################
