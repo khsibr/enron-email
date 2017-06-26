@@ -26,16 +26,16 @@ Architecture:
 ######################################################
 local# aws ec2 create-volume --snapshot snap-d203feb5 --availability-zone us-east-1a --region us-east-1
 local# aws ec2 attach-volume --volume-id vol-05d52ef0e53a99ea7 --instance-id i-0b1a4b402a80996b2 --device /dev/sdf
-local# aws s3api create-bucket --bucket enron_email
+local# aws s3api create-bucket --bucket enronEmails
 
 
 ssh -i Dev/tools/aws/pi-ec2-us-east-1.pem ec2-user@ec2-34-205-155-191.compute-1.amazonaws.com
 
-ec2# sudo mkdir /mnt/enron_email
-ec2# sudo mount /dev/xvdf /mnt/enron_email/
+ec2# sudo mkdir /mnt/enronEmails
+ec2# sudo mount /dev/xvdf /mnt/enronEmails/
 ec2# sudo yum install –y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 ec2# sudo yum -y install python-pip
-ec2# aws s3 cp --recursive /mnt/enron_email/edrm-enron-v2/ s3://enron_email
+ec2# aws s3 cp --recursive /mnt/enronEmails/edrm-enron-v2/ s3://enronEmails
 
 # SUBMIT JOB To EMR
 ######################################################
