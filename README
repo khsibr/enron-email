@@ -1,12 +1,28 @@
 ######################################################
-# SETUP PROJECT                                     #
+# SETUP PROJECT
 ######################################################
 install gradle 3+
 gradle clean install test shadowJar
 
 
 ######################################################
-# CREATE S3 BUCKET USING the SNAPSHOT                #
+# SOLUTION ARCH
+######################################################
+Architecture:
+- Implementation using Spark 2.1 running in EMR and S3.
+- Zip files uncompressed and process EML file to store cleansed view in parquet format
+
+3 jobs are used:
+1- preprocess_job: create a clean parquet storage
+2- average_job: using the parquet storage, computes the average body length
+3- topRecipients_job: using the parquet storage, computes top 100 recipients
+
+
+######################################################
+# DEPLOYMENT SOLUTION
+######################################################
+
+# CREATE S3 BUCKET USING the SNAPSHOT
 ######################################################
 local# aws ec2 create-volume --snapshot snap-d203feb5 --availability-zone us-east-1a --region us-east-1
 local# aws ec2 attach-volume --volume-id vol-05d52ef0e53a99ea7 --instance-id i-0b1a4b402a80996b2 --device /dev/sdf
@@ -21,7 +37,6 @@ ec2# sudo yum install –y https://dl.fedoraproject.org/pub/epel/epel-release-la
 ec2# sudo yum -y install python-pip
 ec2# aws s3 cp --recursive /mnt/enron_email/edrm-enron-v2/ s3://enron_email
 
-######################################################
 # SUBMIT JOB To EMR
 ######################################################
 - create a cluster with 3 nodes

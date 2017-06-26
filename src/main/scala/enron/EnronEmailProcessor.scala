@@ -14,6 +14,10 @@ import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.{Failure, Success}
 
+/**
+  * This processor is responsible for processing the Enron Emails Dataset in order to build a clean parquet view.
+  *
+  */
 class EnronEmailProcessor(config: EnronEmailProcessorConfig) extends SparkProcessor {
 
   val log: Logger = LoggerFactory.getLogger(classOf[EnronEmailProcessor])
@@ -31,20 +35,31 @@ class EnronEmailProcessor(config: EnronEmailProcessorConfig) extends SparkProces
       Job.getInstance.getConfiguration)
 
     val emailFormat = config.emailFormat
+
+    // Parse Emails
+    // EML format preferred because PST library doesn't support input stream as input
+    // and because EML files are typically smaller (~1MB) vs PST files can be very large (~1GB)
     val emailsRdd = zipFileRDD.collect {
       case (s, w) if getExtension(s.toString) == emailFormat =>
         val fileName = s.toString
-        val triedEmails = EmailParser(fileName).map({ p =>
+        val triedEmails = EmailParser(fileName).map { p =>
           p.process(new ByteArrayInputStream(w.copyBytes()))
-        })
-        triedEmails.collect({
+        }
+        triedEmails.collect {
           case Success(emails) => (emails, 0)
           case Failure(e) => println("Error parsing email", e); (Nil, 1)
-        }
-        ).getOrElse((Nil, 0))
+        }.getOrElse((Nil, 0))
     }
 
-    val stats = emailsRdd.aggregate((0, 0))((acc, res2) => (acc._1 + res2._1.size, acc._2 + res2._2), (acc1, acc2) => (acc1._1 + acc2._1, acc1._2 + acc2._2))
+    // Compute parse stats
+    val stats = emailsRdd.aggregate((0, 0))(
+      (accum, res2) => (accum, res2) match {
+        case ((totalSuccessCount, totalErrorCount), (emails, errorCount)) => (totalSuccessCount + emails.size, totalErrorCount + errorCount)
+      },
+      (accum1, accum2) => (accum1, accum2) match {
+        case ((successCount1, errorCount1), (successCount2, errorCount2)) => (successCount1 + successCount2, errorCount1 + errorCount2)
+      }
+    )
     log.info(s"**************** Stats: Success ${stats._1}, Failures ${stats._2} **********************")
 
     emailsRdd.flatMap(_._1).toDS().write.parquet(config.outputPath)
@@ -57,6 +72,7 @@ class EnronEmailProcessor(config: EnronEmailProcessorConfig) extends SparkProces
 
 object EnronEmailProcessor {
   def apply(prop: Properties): EnronEmailProcessor = new EnronEmailProcessor(EnronEmailProcessorConfig(prop))
+
   def apply(emailsPath: String, outputPath: String, emailFormat: String): EnronEmailProcessor = new EnronEmailProcessor(EnronEmailProcessorConfig(emailsPath, outputPath, emailFormat))
 }
 

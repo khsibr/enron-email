@@ -7,6 +7,10 @@ import org.apache.spark.sql.SparkSession
 import org.slf4j.{Logger, LoggerFactory}
 import org.apache.spark.sql.functions._
 
+/**
+  * This processor is responsible for computing the average length, in words, of the emails.
+  *
+  */
 class AverageLengthProcessor(config: AverageLengthProcessorConfig) extends SparkProcessor {
 
   val log: Logger = LoggerFactory.getLogger(classOf[AverageLengthProcessor])
@@ -14,10 +18,12 @@ class AverageLengthProcessor(config: AverageLengthProcessorConfig) extends Spark
   def run(sparkSession: SparkSession): Unit = {
     import sparkSession.implicits._
     log.info(">>>>>>>> Started JOB")
+
     val tokenize = udf { (text: String) => text.split("\\s+") }
     val emailDF = sparkSession.read.parquet(config.processedPath)
     val averageEmailLengthDF = emailDF.select(avg(size(tokenize($"body"))).alias("avg_body_length"))
     averageEmailLengthDF.write.parquet(config.outputPath)
+
     val result = averageEmailLengthDF.collect()(0).getDouble(0)
     log.info(s"**************** averageEmailLength: $result **********************")
     log.info(">>>>>>>> Finshed JOB")

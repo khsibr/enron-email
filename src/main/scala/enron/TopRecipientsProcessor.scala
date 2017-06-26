@@ -8,6 +8,10 @@ import org.apache.spark.sql.functions._
 import org.slf4j.{Logger, LoggerFactory}
 
 
+/**
+  * This processor is responsible for finding the top 100 recipient email addresses?.
+  *
+  */
 class TopRecipientsProcessor(config: TopRecipientsProcessorConfig) extends SparkProcessor {
 
   val log: Logger = LoggerFactory.getLogger(classOf[TopRecipientsProcessor])

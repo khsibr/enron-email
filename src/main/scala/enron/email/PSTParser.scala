@@ -12,7 +12,10 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
-
+/**
+  * This class is responsible parsing PST files.
+  *
+  */
 class PSTParser() extends EmailParser {
 
 

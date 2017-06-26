@@ -5,11 +5,13 @@ import java.io.File
 import etl.spark.{SparkConfig, SparkJob}
 import org.slf4j.LoggerFactory
 
-
+/**
+  * This is the entry class for executing the job.
+  *
+  */
 object ETLApp {
 
   val log = LoggerFactory.getLogger(ETLApp.getClass)
-
 
   def main(args: Array[String]) {
     log.info("ETL App started")
@@ -26,8 +28,6 @@ object ETLApp {
     }
     log.info("ETL App completed")
   }
-
-
 }
 
 case class ScriptConfig(jobConfFile: File = new File("."))

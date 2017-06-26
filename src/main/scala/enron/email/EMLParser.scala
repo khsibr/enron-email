@@ -10,6 +10,10 @@ import org.apache.commons.lang3.StringUtils.isNotBlank
 
 import scala.util.{Failure, Success, Try}
 
+/**
+  * This class is responsible parsing EML files.
+  *
+  */
 class EMLParser extends EmailParser {
 
   private val messageIdPattern = "<(.*)>".r
