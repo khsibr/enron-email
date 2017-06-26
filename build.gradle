@@ -1,0 +1,112 @@
+group 'enron-emails'
+version '1.0-SNAPSHOT'
+
+
+String hadoop_version = "2.7.3"
+String spark_version = "2.1.0"
+String spark_scala_version = "2.11"
+String scala_version = "2.11.4"
+
+apply plugin: 'groovy'
+
+buildscript {
+
+    repositories {
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+        maven {
+            url "https://oss.sonatype.org/content/repositories/releases"
+        }
+
+    }
+    dependencies {
+        classpath "com.github.jengelman.gradle.plugins:shadow:1.2.3"
+    }
+}
+
+
+allprojects {
+    version '1.0.1'
+    apply plugin: 'idea'
+    apply plugin: 'scala'
+    apply plugin: 'maven'
+    apply plugin: 'maven-publish'
+    apply plugin: 'com.github.johnrengelman.shadow'
+
+
+    idea {
+        module {
+            downloadJavadoc = true
+            downloadSources = true
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        compile 'org.scala-lang:scala-library:' + scala_version
+
+        compile ('org.apache.hadoop:hadoop-common:' + hadoop_version) {
+            exclude group: 'javax.servlet'
+        }
+
+        compile "com.amazonaws:aws-java-sdk:1.7.4"
+        compile ("org.apache.hadoop:hadoop-aws:" + hadoop_version) {
+            exclude group: "com.amazonaws"
+            exclude group: "commons-beanutils"
+        }
+
+
+        compile 'org.apache.hadoop:hadoop-mapreduce-client-core:' + hadoop_version
+        compile 'org.apache.hive:hive-common:2.1.1'
+
+        compile ('org.apache.spark:spark-core_' + spark_scala_version + ':' + spark_version) {
+            exclude group: 'org.apache.hadoop'
+        }
+        compile ('org.apache.spark:spark-sql_' + spark_scala_version + ':' + spark_version) {
+            exclude group: 'org.apache.hadoop'
+        }
+        compile ('org.apache.spark:spark-hive_' + spark_scala_version + ':' + spark_version) {
+            exclude group: 'org.apache.hadoop'
+        }
+        compile ('org.apache.spark:spark-streaming_' + spark_scala_version + ':' + spark_version) {
+            exclude group: 'org.apache.hadoop'
+        }
+        compile ('org.apache.spark:spark-mllib_' + spark_scala_version + ':' + spark_version) {
+            exclude group: 'org.apache.hadoop'
+        }
+        compile "com.github.scopt:scopt_2.11:3.4.0"
+        compile "org.slf4s:slf4s-api_2.11:1.7.13"
+        compile "ch.qos.logback:logback-classic:1.1.6"
+
+        compile files('libs/com-cotdp-hadoop-1.0-SNAPSHOT.jar')
+
+        // Enron
+        compile 'com.pff:java-libpst:0.9.3'
+        // Enron
+
+        testCompile "org.specs2:specs2-core_2.11:3.7.3"
+        testCompile "org.specs2:specs2-junit_2.11:3.7.3"
+        testCompile 'org.scalatest:scalatest_2.11:2.2.6'
+        testCompile group: 'junit', name: 'junit', version: '4.11'
+    }
+
+    shadowJar {
+        dependencies {
+            include(dependency('com.github.scopt:scopt_2.11:3.4.0'))
+            include(dependency('com.google.guava:guava:18.0'))
+            include(dependency('joda-time:joda-time:2.8.2'))
+            include(dependency('com.pff:java-libpst:0.9.3'))
+
+            // Enron
+            include(dependency('com.fasterxml.jackson.core:jackson-core:2.6.2'))
+            // Enron
+
+        }
+        zip64 true
+    }
+}

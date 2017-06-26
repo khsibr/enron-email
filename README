@@ -1,0 +1,149 @@
+######################################################
+# SETUP PROJECCT                                     #
+######################################################
+gradle install test shadowJar
+
+
+######################################################
+# CREATE S3 BUCKET USING the SNAPSHOT                #
+######################################################
+local# aws ec2 create-volume --snapshot snap-d203feb5 --availability-zone us-east-1a --region us-east-1
+local# aws ec2 attach-volume --volume-id vol-05d52ef0e53a99ea7 --instance-id i-0b1a4b402a80996b2 --device /dev/sdf
+local# aws s3api create-bucket --bucket enron_email
+
+
+ssh -i Dev/tools/aws/pi-ec2-us-east-1.pem ec2-user@ec2-34-205-155-191.compute-1.amazonaws.com
+
+ec2# sudo mkdir /mnt/enron_email
+ec2# sudo mount /dev/xvdf /mnt/enron_email/
+ec2# sudo yum install –y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+ec2# sudo yum -y install python-pip
+ec2# aws s3 cp --recursive /mnt/enron_email/edrm-enron-v2/ s3://enron_email
+
+######################################################
+# SUBMIT JOB To EMR
+######################################################
+- create a cluster with 3 nodes
+- add Spark step for all the jobs
+- upload build/libs/enron-email-1.0.1-all.jar to S3
+Arguments:
+spark-submit --deploy-mode cluster --executor-memory 10g \
+--class etl.ETLApp s3://enron-emails-jar/enron-email-1.0.1-all.jar \
+-c /topRecipients_job.properties
+
+
+######################################################
+# REUSLTS
+######################################################
++------------------+
+|avg_body_length   |
++------------------+
+|160.04765675556902|
++------------------+
+
+
++-----------------------------------------------+----------+
+|recipient                                      |totalScore|
++-----------------------------------------------+----------+
+|Jeff Dasovich                                  |15857.0   |
+|Tana Jones                                     |14865.5   |
+|Mark Taylor                                    |14306.5   |
+|Richard Shapiro                                |12470.5   |
+|Pete Davis <pete.davis@enron.com>              |12451.5   |
+|Sara Shackleton                                |11985.0   |
+|James D Steffes                                |11801.0   |
+|Susan J Mara                                   |9264.0    |
+|Sally Beck                                     |8960.5    |
+|Paul Kaufman                                   |8556.0    |
+|pete.davis@enron.com                           |8001.0    |
+|Daren J Farmer                                 |7636.5    |
+|Sandra McCubbin                                |6996.5    |
+|Tim Belden                                     |6453.0    |
+|William S Bradford                             |6432.0    |
+|Gerald Nemec                                   |6085.5    |
+|Carol St Clair                                 |5787.5    |
+|Harry Kingerski                                |5697.5    |
+|Steven J Kean                                  |5664.0    |
+|Jeffrey T Hodge                                |5601.0    |
+|Susan Bailey                                   |5591.0    |
+|Elizabeth Sager                                |5542.0    |
+|John J Lavorato                                |5449.0    |
+|dporter3@enron.com                             |5343.0    |
+|jbryson@enron.com                              |5334.0    |
+|Karen Denne                                    |5252.0    |
+|Kay Mann                                       |5247.0    |
+|Richard B Sanders                              |5068.5    |
+|Joe Hartsoe                                    |4946.5    |
+|Mark E Haedicke                                |4938.5    |
+|Alan Comnes                                    |4663.5    |
+|Kate Symes                                     |4562.0    |
+|Brent Hendry                                   |4550.5    |
+|Mark Guzman <mark.guzman@enron.com>            |4497.5    |
+|Greg Whalley                                   |4375.0    |
+|Tom Moran                                      |4228.5    |
+|Ryan Slinger <ryan.slinger@enron.com>          |4204.0    |
+|Bert Meyers <bert.meyers@enron.com>            |4186.0    |
+|Stacy E Dickson                                |4174.0    |
+|Bill Williams III <bill.williams.III@enron.com>|4128.0    |
+|Geir Solberg <Geir.Solberg@enron.com>          |4115.0    |
+|Mary Cook                                      |4114.0    |
+|Karen Lambert                                  |4065.5    |
+|Sarah Novosel                                  |4026.5    |
+|Leslie Hansen                                  |3973.0    |
+|Smith                                          |3930.5    |
+|Chris H Foster                                 |3919.0    |
+|Beck                                           |3909.5    |
+|All Enron Worldwide                            |3888.0    |
+|Mona L Petrochko                               |3865.5    |
+|Debbie R Brackett                              |3798.0    |
+|Alan Aronowitz                                 |3787.0    |
+|Mary Hain                                      |3775.5    |
+|Craig Dean <Craig.Dean@enron.com>              |3724.5    |
+|Frank L Davis                                  |3716.0    |
+|Louise Kitchen                                 |3662.0    |
+|Stephanie Panus                                |3648.0    |
+|Jeffrey A Shankman                             |3631.0    |
+|Samantha Boyd                                  |3579.0    |
+|Outlook Migration Team                         |3536.0    |
+|Kitchen  Louise <Louise.Kitchen@ENRON.com>     |3533.0    |
+|Brant Reves                                    |3526.5    |
+|skean@enron.com                                |3518.0    |
+|Sally </O=ENRON/OU=NA/CN=RECIPIENTS/CN=Sbeck>  |3478.0    |
+|Dan J Hyvl                                     |3414.0    |
+|Jeffery Fawcett                                |3413.0    |
+|Russell Diamond                                |3371.5    |
+|Suzanne Adams                                  |3360.0    |
+|Kevin Hyatt                                    |3288.5    |
+|Linda Robertson                                |3280.5    |
+|Christian Yoder                                |3272.5    |
+|Genia FitzGerald                               |3250.0    |
+|Tanya Rohauer                                  |3211.5    |
+|David W Delainey                               |3189.0    |
+|Steven Harris                                  |3167.5    |
+|Phillip K Allen                                |3146.0    |
+|Sheri Thomas                                   |3121.0    |
+|Tracy Ngo                                      |3117.5    |
+|Janel Guerrero                                 |3111.5    |
+|Leslie Reeves                                  |3104.0    |
+|Edward Sacks                                   |3066.0    |
+|Bryan Hull                                     |3050.0    |
+|Samuel Schott                                  |3021.0    |
+|mark.guzman@enron.com                          |3006.0    |
+|Shari Stack                                    |2994.5    |
+|Leaf Harasin <leaf.harasin@enron.com>          |2984.0    |
+|Mark Palmer                                    |2970.5    |
+|Christopher F Calger                           |2964.5    |
+|Lisa Lees                                      |2944.5    |
+|Bob Bowen                                      |2924.5    |
+|Robert Badeer                                  |2924.0    |
+|mpalmer@enron.com                              |2923.5    |
+|Ginger Dernehl                                 |2912.5    |
+|Monika Causholli <monika.causholli@enron.com>  |2871.0    |
+|EX                                             |2854.0    |
+|Harry M Collins                                |2853.0    |
+|Williams                                       |2828.5    |
+|Mark                                           |2824.5    |
+|Stephanie Sever                                |2813.0    |
+|Benjamin Rogers                                |2795.0    |
++-----------------------------------------------+----------+
+
